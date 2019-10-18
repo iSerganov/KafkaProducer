@@ -1,0 +1,30 @@
+version: '3.4'
+
+services:
+  kafkaproducer:
+    image: ${DOCKER_REGISTRY-}kafkaproducer
+    build:
+      context: .
+      dockerfile: KafkaProducer/Dockerfile
+    ports:
+     - "80:80"
+     - "443:443"
+  zookeeper:
+    image: wurstmeister/zookeeper
+    ports:
+      - "2181:2181"
+  kafka:
+    image: wurstmeister/kafka
+    command: [start-kafka.sh]
+    ports:
+      - "9092:9092"
+    hostname: kafka
+    environment:
+      KAFKA_CREATE_TOPICS: "eventsqueue:1:1,publishedevents:1:1" # topic:partition:replicas
+      KAFKA_ADVERTISED_HOST_NAME: kafka # docker-machine ip
+      KAFKA_ZOOKEEPER_CONNECT: zookeeper:2181
+      KAFKA_ADVERTISED_PORT: 9092
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock
+    depends_on:
+      - "zookeeper"
